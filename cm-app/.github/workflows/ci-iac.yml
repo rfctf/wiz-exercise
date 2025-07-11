@@ -17,3 +17,7 @@ jobs:
         run: tfsec infrastructure
       - name: Terraform Apply
         run: terraform apply -auto-approve
+        - name: Scan image with Trivy
+        run: |
+          trivy image --severity CRITICAL --exit-code 1 \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/wiz-exercise:latest
