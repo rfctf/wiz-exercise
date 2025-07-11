@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-test
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+      - name: tester
+        image: busybox
+        command:
+          - sh
+          - -c
+          - |
+            nc -vz 10.0.14.185 27017 && echo "Mongo OK" || echo "Mongo FAILED"
+      restartPolicy: Never

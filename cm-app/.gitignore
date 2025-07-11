@@ -1,0 +1,9 @@
+# Node modules
+app/node_modules/
+
+# Terraform
+infrastructure/.terraform/
+
+# Logs, temp files
+*.log
+*.zip
