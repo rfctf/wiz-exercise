@@ -3,9 +3,7 @@ name: CI – IaC
 on:
   push:
     branches: [ main ]          # run only on pushes to main
-    paths:                      # *additionally* only when these files change
-      - 'infrastructure/**'
-
+  
 jobs:
   terraform:
     runs-on: ubuntu-latest
