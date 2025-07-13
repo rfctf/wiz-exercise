@@ -2,7 +2,8 @@ name: CI – App
 on:
   push:
     paths:
-      - 'app/**'
+      branches: [ main ]
+      # - 'app/**'
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -25,3 +26,6 @@ jobs:
         run: |
           kubectl set image deployment/wiz-app \
             wiz=$\{ { secrets.AWS_ACCOUNT_ID } }.dkr.ecr.$\{ { secrets.AWS_REGION } }.amazonaws.com/wiz-exercise:latest --record
+
+        sed -i 's#on:.*#on:\n  push:\n    branches: [ main ]#' .github/workflows/ci-app.yml
+
