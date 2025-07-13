@@ -1,9 +1,11 @@
 name: CI – IaC
+
 on:
   push:
-    paths:
-      branches: [ main ] 
-      # - 'infrastructure/**'
+    branches: [ main ]          # run only on pushes to main
+    paths:                      # *additionally* only when these files change
+      - 'infrastructure/**'
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
@@ -15,8 +17,7 @@ jobs:
           terraform init
           terraform validate
       - name: Tfsec Scan
-        run: tfsec infrastructure
+        run: tfsec .
       - name: Terraform Apply
         run: terraform apply -auto-approve
-
 
