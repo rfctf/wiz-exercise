@@ -1,0 +1,31 @@
+name: CI – App
+on:
+  push:
+    paths:
+      branches: [ main ]
+      # - 'app/**'
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker Image
+        run: docker build -t wiz-exercise:latest app
+      - name: Trivy Scan
+        run: trivy image --exit-code 1 wiz-exercise:latest
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password \
+            | docker login --username AWS --password-stdin $\{ { secrets.AWS_ACCOUNT_ID } }.dkr.ecr.$\{ { secrets.AWS_REGION } }.amazonaws.com
+      - name: Tag & Push
+        run: |
+          docker tag wiz-exercise:latest \
+            $\{ { secrets.AWS_ACCOUNT_ID } }.dkr.ecr.$\{ { secrets.AWS_REGION } }.amazonaws.com/wiz-exercise:latest
+          docker push $\{ { secrets.AWS_ACCOUNT_ID } }.dkr.ecr.$\{ { secrets.AWS_REGION } }.amazonaws.com/wiz-exercise:latest
+      - name: Deploy to EKS
+        run: |
+          kubectl set image deployment/wiz-app \
+            wiz=$\{ { secrets.AWS_ACCOUNT_ID } }.dkr.ecr.$\{ { secrets.AWS_REGION } }.amazonaws.com/wiz-exercise:latest --record
+
+        sed -i 's#on:.*#on:\n  push:\n    branches: [ main ]#' .github/workflows/ci-app.yml
+
