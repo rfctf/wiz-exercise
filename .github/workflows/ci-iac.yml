@@ -1,44 +1,53 @@
- name: CI – IaC
+name: CI – IaC
 
- on:
-   push:
-     branches: [ main ]
+on:
+  push:
+    branches:
+      - main
 
- jobs:
-   terraform:
-     runs-on: ubuntu-latest
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
 
-     steps:
-       - uses: actions/checkout@v3
-
-+      # ──────────────────────────────────────────────────
-+      # Install Terraform on the runner
-+      - name: Setup Terraform
-+        uses: hashicorp/setup-terraform@v2
-+        with:
-+          terraform_version: "1.5.7"    # or your preferred version
-+      # ──────────────────────────────────────────────────
-
-       - name: Populate infrastructure folder
-         uses: actions/checkout@v3
-         with:
-           path: infrastructure
-
-       - name: Terraform Init & Validate
-         working-directory: infrastructure
-         run: |
--          terraform init
--          terraform validate
-+          terraform init
-+          terraform validate
-
-        - name: tfsec Scan
+    defaults:
+      run:
+        # all `run:` steps execute inside ./infrastructure
         working-directory: infrastructure
+
+    steps:
+      # ─── 1) Checkout your repo (app + infra) into ./repo ────────────────────────
+      - name: Checkout all code
+        uses: actions/checkout@v3
+        with:
+          path: repo
+          fetch-depth: 0
+
+      # ─── 2) Second checkout of the SAME repo into ./infrastructure ─────────────
+      - name: Populate infrastructure folder
+        uses: actions/checkout@v3
+        with:
+          path: infrastructure
+
+      # ─── 3) Install Terraform ───────────────────────────────────────────────────
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.7"
+
+      # ─── 4) Terraform Init & Validate ─────────────────────────────────────────
+      - name: Terraform Init & Validate
         run: |
-          # install tfsec if you haven’t already
-          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          terraform init
+          terraform validate
+
+      # ─── 5) Install & run tfsec scan ───────────────────────────────────────────
+      - name: Install and run tfsec
+        run: |
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh \
+            | bash
           tfsec .
 
+      # ─── 6) Terraform Apply ────────────────────────────────────────────────────
       - name: Terraform Apply
-        working-directory: infrastructure
         run: terraform apply -auto-approve
+
