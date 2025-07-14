@@ -2,20 +2,37 @@ name: CI – IaC
 
 on:
   push:
-    branches: [ main ]          # run only on pushes to main
-  
+    branches: [ main ]
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      # 1) Checkout THIS repo (so Actions finds your workflow and app code)
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+
+      # 2) Checkout the infra repo into ./infrastructure
+      - name: Checkout infra repo
+        uses: actions/checkout@v3
+        with:
+          repository: your‑org/infrastructure
+          token:        ${{ secrets.GITHUB_TOKEN }}
+          path:          infrastructure
+
+      # 3) Run Terraform there
       - name: Terraform Init & Validate
+        working-directory: infrastructure
         run: |
-          /home/cloudshell-user/cm-app/infrastructure
           terraform init
           terraform validate
+
       - name: Tfsec Scan
+        working-directory: infrastructure
         run: tfsec .
+
       - name: Terraform Apply
+        working-directory: infrastructure
         run: terraform apply -auto-approve
 
