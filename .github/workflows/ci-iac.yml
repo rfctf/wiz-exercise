@@ -1,40 +1,42 @@
-# File: .github/workflows/ci-iac.yml
-name: CI – IaC
+ name: CI – IaC
 
-on:
-  push:
-    branches: [ main ]
+ on:
+   push:
+     branches: [ main ]
 
-jobs:
-  terraform:
-    runs-on: ubuntu-latest
+ jobs:
+   terraform:
+     runs-on: ubuntu-latest
 
-    steps:
-      # ── Step 1: Checkout the full repo (app+infra) into ./repo
-      - name: Checkout all code
-        uses: actions/checkout@v3
-        with:
-          path: repo
-          fetch-depth: 0
+     steps:
+       - uses: actions/checkout@v3
 
-      # ── Step 2: Re‑checkout the SAME repo into ./infrastructure
-      - name: Populate infrastructure folder
-        uses: actions/checkout@v3
-        with:
-          path: infrastructure
++      # ──────────────────────────────────────────────────
++      # Install Terraform on the runner
++      - name: Setup Terraform
++        uses: hashicorp/setup-terraform@v2
++        with:
++          terraform_version: "1.5.7"    # or your preferred version
++      # ──────────────────────────────────────────────────
 
-      # ── Step 3: Run Terraform inside that infra folder
-      - name: Terraform Init & Validate
-        working-directory: infrastructure
-        run: |
-          terraform init
-          terraform validate
+       - name: Populate infrastructure folder
+         uses: actions/checkout@v3
+         with:
+           path: infrastructure
 
-      - name: Tfsec Scan
-        working-directory: infrastructure
-        run: tfsec .
+       - name: Terraform Init & Validate
+         working-directory: infrastructure
+         run: |
+-          terraform init
+-          terraform validate
++          terraform init
++          terraform validate
 
-      - name: Terraform Apply
-        working-directory: infrastructure
-        run: terraform apply -auto-approve
+       - name: tfsec Scan
+         working-directory: infrastructure
+         run: tfsec .
+
+       - name: Terraform Apply
+         working-directory: infrastructure
+         run: terraform apply -auto-approve
 
