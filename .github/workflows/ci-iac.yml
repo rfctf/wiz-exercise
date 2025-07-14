@@ -32,11 +32,13 @@
 +          terraform init
 +          terraform validate
 
-       - name: tfsec Scan
-         working-directory: infrastructure
-         run: tfsec .
+        - name: tfsec Scan
+        working-directory: infrastructure
+        run: |
+          # install tfsec if you haven’t already
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          tfsec .
 
-       - name: Terraform Apply
-         working-directory: infrastructure
-         run: terraform apply -auto-approve
-
+      - name: Terraform Apply
+        working-directory: infrastructure
+        run: terraform apply -auto-approve
