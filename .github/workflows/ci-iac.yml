@@ -1,3 +1,4 @@
+# File: .github/workflows/ci-iac.yml
 name: CI – IaC
 
 on:
@@ -9,19 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout THIS repo (so Actions finds your workflow and app code)
-      - name: Checkout this repo
-        uses: actions/checkout@v3
-
-      # 2) Checkout the infra repo into ./infrastructure
-      - name: Checkout infra repo
+      # ── Step 1: Checkout the full repo (app+infra) into ./repo
+      - name: Checkout all code
         uses: actions/checkout@v3
         with:
-          repository: your‑org/infrastructure
-          token:        ${{ secrets.GITHUB_TOKEN }}
-          path:          infrastructure
+          path: repo
+          fetch-depth: 0
 
-      # 3) Run Terraform there
+      # ── Step 2: Re‑checkout the SAME repo into ./infrastructure
+      - name: Populate infrastructure folder
+        uses: actions/checkout@v3
+        with:
+          path: infrastructure
+
+      # ── Step 3: Run Terraform inside that infra folder
       - name: Terraform Init & Validate
         working-directory: infrastructure
         run: |
